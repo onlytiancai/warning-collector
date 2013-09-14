@@ -1,4 +1,4 @@
-* 顶部菜单的整体背景色 */
+/* 顶部菜单的整体背景色 */
 .navbar-inverse {
     background:-moz-linear-gradient(0% 100% 90deg, #0436BF, #075DF2) repeat #03d178;
     border-color: #518DF5;
