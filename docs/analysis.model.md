@@ -19,6 +19,7 @@ users表
 1. app_id
 1. sina_user_id
 1. user_name
+1. created_on
 
 warnings表
 

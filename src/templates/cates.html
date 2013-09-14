@@ -1,10 +1,11 @@
+$def with (data)
 $var title: 报警分类管理
 
 <div class="row">
     <div class="col-md-6">
-        <form class="form-inline" role="form">
+        <form class="form-inline" role="form" method="POST" action="">
             <div class="form-group">
-                <input type="text" class="form-control" placeholder="新分类名称">
+                <input type="text" class="form-control" name="cate" placeholder="新分类名称">
             </div>
             <button type="submit" class="btn btn-default">添加</button>
         </form>
@@ -17,17 +18,10 @@ $var title: 报警分类管理
                 </tr>
             </thead>
             <tbody>
+            $for cate in data['cates']
                 <tr>
-                    <td>主机资源</td>
-                    <td><a href="#">删除</a></td>
-                </tr>
-                <tr>
-                    <td>主机资源</td>
-                    <td><a href="#">删除</a></td>
-                </tr>
-                <tr>
-                    <td>主机资源</td>
-                    <td><a href="#">删除</a></td>
+                    <td>$cate.cate</td>
+                    <td><a href="?action=del&cate_id=$cate.cate_id">删除</a></td>
                 </tr>
             </tbody>
         </table>
