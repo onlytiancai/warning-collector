@@ -1,0 +1,50 @@
+$def with (content)
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8">
+        <title>$content.title - 蛙蛙报警平台</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="http://lib.sinaapp.com/js/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
+        <link href="/static/main.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="container">
+            <div class="navbar navbar-inverse">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="/">蛙蛙报警平台</a>
+                </div>
+                <div class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li 
+                        $if content.title == u'首页': class="active"
+                        ><a href="/">首页</a></li>
+                        <li
+                        $if content.title == u'报警分类管理': class="active"
+                        ><a href="/cates">分类管理</a></li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li
+                        $if content.title == u'用户信息': class="active"
+                        ><a href="/userinfo">蛙蛙王子</a></li>
+                        <li
+                        $if content.title == u'关于我们': class="active"
+                        ><a href="/about">关于我们</a></li>
+                    </ul>
+                </div><!--/.nav-collapse -->
+            </div>  
+            $:content
+            <footer>
+            <p>&copy; Wawasoft 2013</p>
+            </footer>
+        </div>
+        <script src="http://lib.sinaapp.com/js/jquery/1.8.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="http://lib.sinaapp.com/js/bootstrap/3.0.0/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="/static/main.js" type="text/javascript" charset="utf-8"></script>
+    </body>
+</html>

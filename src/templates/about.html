@@ -1,0 +1,18 @@
+$var title: 关于我们
+<h2>关于我们</h2>
+<p>你可以编写一些脚本把自己的主机和业务监控起来，发现异常时调用我们的API，我们通知给你，并给你做故障的记录和汇总。 </p>
+<h2>报警API</h2>
+<pre>curl https://wawa-monitor.sinaapp.com/sendwarning/{user_id}\\
+
+-d "app_id={app_id}\\
+
+&cate=系统报警\\
+
+&title=磁盘快满了\\
+
+&host=10.133.44.88\\
+
+&appname=app1\\
+
+&content=磁盘真的满了"
+</pre>
