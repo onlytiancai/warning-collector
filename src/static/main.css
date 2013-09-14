@@ -1,3 +1,55 @@
+* 顶部菜单的整体背景色 */
+.navbar-inverse {
+    background:-moz-linear-gradient(0% 100% 90deg, #0436BF, #075DF2) repeat #03d178;
+    border-color: #518DF5;
+    background-color:#227ADB;   
+    background-image:-o-linear-gradient(-90deg,rgba(112,179,228,1),rgba(66,154,219,0));
+    background-image:-moz-linear-gradient(-90deg,rgba(112,179,228,1),rgba(66,154,219,0));
+    background-image:-webkit-gradient(linear,50% 0%,50% 100%,from(rgba(112,179,228,1)),to(rgba(66,154,219,0)));
+    background-image:-webkit-linear-gradient(-90deg,rgba(112,179,228,1),rgba(66,154,219,0));
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+
+/* LOGO 部分背景色和字体颜色*/
+.navbar-inverse .navbar-brand {
+    color: #fff;
+}
+
+/* LOGO 部分hover时背景色和字体颜色*/
+.navbar-inverse .navbar-brand:hover, 
+.navbar-inverse .navbar-brand:focus {
+    color: #eee;
+    background-color: transparent;
+}
+
+/* 普通菜单项的颜色和背景  */
+.navbar-inverse .navbar-nav>li>a {
+    color: #fff;
+}
+
+/* 普通菜单项hover时的字体颜色和背景  */
+.navbar-inverse .navbar-nav>li>a:hover, 
+.navbar-inverse .navbar-nav>li>a:focus {
+    color: #ddd;
+    background-color: transparent;
+}
+
+/* 当前选中菜单项的字体颜色和背景  */
+.navbar-inverse .navbar-nav>.active>a, 
+.navbar-inverse .navbar-nav>.active>a:hover, 
+.navbar-inverse .navbar-nav>.active>a:focus {
+    color: #fff;
+    background:-moz-linear-gradient(0% 100% 90deg, #04BF36, #07F25D) repeat #0378d1;
+    border-color: #8ADF37;
+    background-color:#4ACF00;   
+    background-image:-o-linear-gradient(-90deg,rgba(255,255,255,0.38),rgba(85,170,0,0.7)); 
+    background-image:-moz-linear-gradient(-90deg,rgba(255,255,255,0.38),rgba(85,170,0,0.7));
+    background-image:-webkit-gradient(linear,50% 0%,50% 100%,from(rgba(255,255,255,0.38)),to(rgba(85,170,0,0.7)));  
+    background-image:-webkit-linear-gradient(-90deg,rgba(255,255,255,0.38),rgba(85,170,0,0.7));
+}
+
+/*修复bootstrap3.0的bug*/
 .nav > li.active{
     font-weight:bold;
 }
