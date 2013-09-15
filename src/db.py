@@ -3,6 +3,7 @@ import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
+from datetime import datetime
 
 import config
 
@@ -35,6 +36,17 @@ class Warning(Base):
     title = sqlalchemy.Column(sqlalchemy.String(256))
     content = sqlalchemy.Column(sqlalchemy.String(8000))
     created_on = sqlalchemy.Column(sqlalchemy.DateTime, index=True)
+
+    def __init__(self, user_id, title, content, level=0,
+                 cate="Default", host="Default", appname="Default"):
+        self.user_id = user_id
+        self.title = title
+        self.content = content
+        self.level = level
+        self.cate = cate
+        self.host = host
+        self.appname = appname
+        self.created_on = datetime.now()
 
 
 class WarningCate(Base):

@@ -1,28 +1,30 @@
+$def with (data)
 $var title: 首页
 <div class="row">
     <div class="col-md-3">
         <div class="well sidebar-nav">
             <ul class="nav">
                 <li>报警分类</li>
-                <li class="active"><a href="#">全部</a></li>
-                <li><a href="#">分类1</a></li>
-                <li><a href="#">分类2</a></li>
+                <li class="active"><a href="?cate=all">全部</a></li>
+                $for cate in data.cates:
+                    <li><a href="?cate=$cate.cate">$cate.cate</a></li>
             </ul>
         </div>
     </div>
     <div class="col-md-9">
-        <form class="form-inline" role="form">
+        <form class="form-inline" role="form" action="" method="GET">
+            <input type="hidden" name="cate" value="$data.cate">
             <div class="form-group">
-                <input type="text" class="form-control" placeholder="所有主机">
+                <input type="text" class="form-control" placeholder="所有主机" name="host" value="$data.host">
             </div>
             <div class="form-group">
-                <input type="text" class="form-control" placeholder="所有应用">
+                <input type="text" class="form-control" placeholder="所有应用" name="appname" value="$data.appname">
             </div>
             <button type="submit" class="btn btn-default">筛选</button>
-            <button type="submit" class="btn btn-default">前一周</button>
-            <button type="submit" class="btn btn-default">后一周</button>
+            <a class="btn btn-default" href="?cate=$data.cate&host=$data.host&appname=$data.appname&begin_time=$data.last_week_begin&end_time=$data.last_week_end">前一周</a>
+            <a class="btn btn-default" href="?cate=$data.cate&host=$data.host&appname=$data.appname&begin_time=$data.next_week_begin&end_time=$data.next_week_end">后一周</a>
         </form>
-        <h3>2013-09-08 ~ 2013-05-03的报警列表</h3>
+        <h3>$data.begin_time ~ $data.end_time的报警列表</h3>
         <table class="table table-striped">
             <thead>
                 <tr>
@@ -33,23 +35,12 @@ $var title: 首页
                 </tr>
             </thead>
             <tbody>
+            $for warning in data.warnings:
                 <tr>
-                    <td>2013-08-20 13:14</td>
-                    <td>10.133.88.706</td>
-                    <td>app1</td>
-                    <td>磁盘剩余空间不足</td>
-                </tr>
-                <tr>
-                    <td>2013-08-20 13:14</td>
-                    <td>10.133.88.706</td>
-                    <td>app1</td>
-                    <td>磁盘剩余空间不足</td>
-                </tr>
-                <tr>
-                    <td>2013-08-20 13:14</td>
-                    <td>10.133.88.706</td>
-                    <td>app1</td>
-                    <td>磁盘剩余空间不足</td>
+                    <td>$warning.created_on</td>
+                    <td>$warning.host</td>
+                    <td>$warning.appname</td>
+                    <td>$warning.title</td>
                 </tr>
             </tbody>
         </table>

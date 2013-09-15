@@ -18,7 +18,7 @@ $var title: 报警分类管理
                 </tr>
             </thead>
             <tbody>
-            $for cate in data['cates']
+            $for cate in data.cates
                 <tr>
                     <td>$cate.cate</td>
                     <td><a href="?action=del&cate_id=$cate.cate_id">删除</a></td>

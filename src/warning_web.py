@@ -1,47 +1,101 @@
 # -*- coding: utf-8 -*-
 import web
 import os
+import datetime
 
-import db 
+import db
 
 curdir = os.path.dirname(__file__)
 render = web.template.render(os.path.join(curdir, 'templates/'), base='layout')
 
-user_id = 0
+
+def get_currend_user():
+    return web.storage(user_id=1)
+
 
 class index(object):
     def GET(self):
         web.header('Content-Type', 'text/html; charset=utf-8', unique=True)
-        return render.index()
+        user_id = get_currend_user().user_id
+        cates = db.session.query(db.WarningCate).filter_by(user_id=user_id)
+        warnings = db.session.query(db.Warning).filter_by(user_id=user_id)
+        
+        data = web.input(cate='all', host=None, appname=None, begin_time=None, end_time=None)
+        if data.cate != 'all':
+            warnings = warnings.filter_by(cate=data.cate)
+        if data.host:
+            warnings = warnings.filter_by(host=data.host)
+        if data.appname:
+            warnings = warnings.filter_by(appname=data.appname)
+
+        today = datetime.datetime.now()
+        begin_time = today - datetime.timedelta(days=today.weekday())
+        end_time = today + datetime.timedelta(days=(7 - today.weekday() - 1))
+        if data.begin_time:
+            # 不做异常处理，出错就出错吧，对系统没影响，而且请求是非法的
+            begin_time = datetime.datetime.strptime(data.begin_time, '%Y-%m-%d')
+        if data.end_time:
+            end_time = datetime.datetime.strptime(data.end_time, '%Y-%m-%d')
+       
+        # 开始时间换算到0点，结束实践换算到12点
+        begin_time = datetime.datetime.strptime(begin_time.strftime('%Y-%m-%d ' + '00:00:00'), '%Y-%m-%d %H:%M:%S')
+        end_time = datetime.datetime.strptime(end_time.strftime('%Y-%m-%d ' + '23:59:59'), '%Y-%m-%d %H:%M:%S')
+
+        # 时间范围不能超过7天
+        if (end_time - begin_time).total_seconds() > 60 * 60 * 24 * 10:
+            raise web.badrequest()
+       
+        
+        warnings = warnings.filter(db.Warning.created_on >=  begin_time)
+        warnings = warnings.filter(db.Warning.created_on <=  end_time)
+        
+        last_week_begin = begin_time - datetime.timedelta(days=7)
+        last_week_end = end_time - datetime.timedelta(days=7)
+        next_week_begin = begin_time + datetime.timedelta(days=7)
+        next_week_end = end_time + datetime.timedelta(days=7)
+
+        return render.index(web.storage(cates=cates, 
+                                        warnings=warnings, 
+                                        begin_time=begin_time.strftime('%Y-%m-%d'),
+                                        end_time=end_time.strftime('%Y-%m-%d'),
+                                        cate=data.cate,
+                                        host=data.host,
+                                        appname=data.appname, 
+                                        last_week_begin=last_week_begin.strftime('%Y-%m-%d'),
+                                        last_week_end=last_week_end.strftime('%Y-%m-%d'), 
+                                        next_week_begin=next_week_begin.strftime('%Y-%m-%d'),
+                                        next_week_end=next_week_end.strftime('%Y-%m-%d')
+                                        ))
 
 
 class cates(object):
-    def _render(self, user_id):
+    def _render(self):
         web.header('Content-Type', 'text/html; charset=utf-8', unique=True)
-        result = db.session.query(db.WarningCate).filter(db.WarningCate.user_id == user_id)
-        return render.cates(dict(cates=result))
+        result = db.session.query(db.WarningCate).filter(db.WarningCate.user_id == get_currend_user().user_id)
+        return render.cates(web.storage(cates=result))
 
     def GET(self):
         data = web.input(action=None, cate_id=None)
         if data.action == 'del' and data.cate_id:
-            cate = db.session.query(db.WarningCate).filter_by(user_id=user_id,cate_id=data.cate_id).first()
+            cate = db.session.query(db.WarningCate).filter_by(user_id=get_currend_user().user_id,
+                                                              cate_id=data.cate_id).first()
             if cate:
                 db.session.delete(cate)
                 db.session.commit()
                 return web.found('/cates')
 
-        return self._render(user_id)
+        return self._render()
 
     def POST(self):
         data = web.input()
         if not data.cate:
-            raise web.badrequest() 
+            raise web.badrequest()
 
-        cate = db.WarningCate(user_id, data.cate)
+        cate = db.WarningCate(get_currend_user().user_id, data.cate)
         print 1111, data.cate
         db.session.add(cate)
         db.session.commit()
-        return self._render(user_id)
+        return self._render()
 
 
 class userinfo(object):
@@ -55,10 +109,32 @@ class about(object):
         web.header('Content-Type', 'text/html; charset=utf-8', unique=True)
         return render.about()
 
+
+class send_warning(object):
+    def POST(self, user_id):
+        data = web.input(app_id=None, cate='Default', host="Default",
+                         appname="Default", level="0", title=None, content=None)
+
+        # app_id, title, content为必填字段
+        if not all([data.app_id, data.title, data.content]):
+            raise web.badrequest()
+
+        # user_id和app_id不匹配拒绝请求
+        user = db.session.query(db.User).filter_by(user_id=int(user_id), app_id=data.app_id).first()
+        if not user:
+            raise web.forbidden()
+
+        warning = db.Warning(user_id=int(user_id), title=data.title, content=data.content,
+                             level=int(data.level), cate=data.cate, host=data.host, appname=data.appname)
+        db.session.add(warning)
+        db.session.commit()
+
+        
 urls = ["/", index,
         "/cates", cates,
         "/userinfo", userinfo,
         "/about", about,
+        "/send_warning/([^/]+)", send_warning,
         ]
 
 app = web.application(urls, globals())
