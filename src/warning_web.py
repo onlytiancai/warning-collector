@@ -3,14 +3,38 @@ import web
 import os
 import datetime
 
+import config
 import db
 
+web.config.debug = True
 curdir = os.path.dirname(__file__)
-render = web.template.render(os.path.join(curdir, 'templates/'), base='layout')
+urls = ["/", 'index',
+        "/cates", 'cates',
+        "/userinfo", 'userinfo',
+        "/about", 'about',
+        "/send_warning/([^/]+)", 'send_warning',
+        "/login", 'login',
+        "/logout", 'logout',
+        ]
+
+app = web.application(urls, globals())
+wsgiapp = app.wsgifunc()
+
+if web.config.get('_session') is None:
+    store = web.session.DBStore(config.webpydb, 'sessions')
+    session = web.session.Session(app, store)
+    web.config._session = session
+else:
+    session = web.config._session
+
+render = web.template.render(os.path.join(curdir, 'templates/'), base='layout',
+                             cache=False, globals={'session': session})
 
 
 def get_currend_user():
-    return web.storage(user_id=1)
+    if not session.get('user_id'):
+        raise web.seeother('/login')
+    return web.storage(user_id=session.user_id)
 
 
 class index(object):
@@ -45,24 +69,23 @@ class index(object):
         if (end_time - begin_time).total_seconds() > 60 * 60 * 24 * 10:
             raise web.badrequest()
        
-        
-        warnings = warnings.filter(db.Warning.created_on >=  begin_time)
-        warnings = warnings.filter(db.Warning.created_on <=  end_time)
+        warnings = warnings.filter(db.Warning.created_on >= begin_time)
+        warnings = warnings.filter(db.Warning.created_on <= end_time)
         
         last_week_begin = begin_time - datetime.timedelta(days=7)
         last_week_end = end_time - datetime.timedelta(days=7)
         next_week_begin = begin_time + datetime.timedelta(days=7)
         next_week_end = end_time + datetime.timedelta(days=7)
 
-        return render.index(web.storage(cates=cates, 
-                                        warnings=warnings, 
+        return render.index(web.storage(cates=cates,
+                                        warnings=warnings,
                                         begin_time=begin_time.strftime('%Y-%m-%d'),
                                         end_time=end_time.strftime('%Y-%m-%d'),
                                         cate=data.cate,
                                         host=data.host,
-                                        appname=data.appname, 
+                                        appname=data.appname,
                                         last_week_begin=last_week_begin.strftime('%Y-%m-%d'),
-                                        last_week_end=last_week_end.strftime('%Y-%m-%d'), 
+                                        last_week_end=last_week_end.strftime('%Y-%m-%d'),
                                         next_week_begin=next_week_begin.strftime('%Y-%m-%d'),
                                         next_week_end=next_week_end.strftime('%Y-%m-%d')
                                         ))
@@ -92,7 +115,6 @@ class cates(object):
             raise web.badrequest()
 
         cate = db.WarningCate(get_currend_user().user_id, data.cate)
-        print 1111, data.cate
         db.session.add(cate)
         db.session.commit()
         return self._render()
@@ -129,16 +151,22 @@ class send_warning(object):
         db.session.add(warning)
         db.session.commit()
 
+
+class login(object):
+    def GET(self):
+        return render.login()
+
+    def POST(self):
+        data = web.input(user_id=None)
+        session.user_id = int(data.user_id)
+        return web.seeother('/')
+
+
+class logout(object):
+    def GET(self):
+        session.kill()
+        return web.seeother('/login')
+
         
-urls = ["/", index,
-        "/cates", cates,
-        "/userinfo", userinfo,
-        "/about", about,
-        "/send_warning/([^/]+)", send_warning,
-        ]
-
-app = web.application(urls, globals())
-wsgiapp = app.wsgifunc()
-
 if __name__ == "__main__":
     app.run()

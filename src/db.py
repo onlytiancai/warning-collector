@@ -11,6 +11,16 @@ engine = sqlalchemy.create_engine(config.dbconn, echo=True, connect_args={'chars
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
 
+class WebSession(Base):
+    __tablename__ = 'sessions'
+    __table_args__ = {'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8'}
+    __mapper_args__ = {'always_refresh': True}
+
+    session_id = sqlalchemy.Column(sqlalchemy.String(128), nullable=False, unique=True, primary_key=True)
+    atime = sqlalchemy.Column(sqlalchemy.TIMESTAMP, nullable=False, default=sqlalchemy.func.current_timestamp)
+    data = sqlalchemy.Column(sqlalchemy.TEXT)
+
+
 class User(Base):
     __tablename__ = 'users'
     __table_args__ = {'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8'}
