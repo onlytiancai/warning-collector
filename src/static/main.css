@@ -53,3 +53,7 @@
 .nav > li.active{
     font-weight:bold;
 }
+
+.navbar-inverse .navbar-text{
+    color:#fff;
+}

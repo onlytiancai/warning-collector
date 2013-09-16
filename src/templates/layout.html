@@ -21,7 +21,7 @@ $def with (content)
                 </div>
                 <div class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
-                    $if session.get('user_id'):
+                    $if session.get('user'):
                         <li 
                         $if content.title == u'首页': class="active"
                         ><a href="/"><span class="glyphicon glyphicon-home"></span> 首页</a></li>
@@ -33,16 +33,14 @@ $def with (content)
                         ><a href="/userinfo"><span class="glyphicon glyphicon-user"></span> 用户信息</a></li>
                         <li
                         $if content.title == u'帮助信息': class="active"
-                        ><a href="/about"><span class="glyphicon glyphicon-question-sign"></span> 帮助信息</a></li>
+                        ><a href="/default"><span class="glyphicon glyphicon-question-sign"></span> 帮助信息</a></li>
                     </ul>
                     <ul class="nav navbar-nav pull-right">
-                    $if session.get('user_id'):
+                    $if session.get('user'):
                         <li><a href="/logout">退出登录</a></li>
-                    $else:
-                        <li
-                        $if content.title == u'用户登录': class="active"
-                        ><a href="/login">用户登录</a></li>
-                    </u>
+                    </ul>
+                    $if session.get('user'):
+                        <p class="navbar-text pull-right">$session.user.user_name</p>
                 </div><!--/.nav-collapse -->
             </div>  
             $:content

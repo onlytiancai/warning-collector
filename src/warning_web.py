@@ -7,19 +7,23 @@ import config
 import db
 
 web.config.debug = True
-curdir = os.path.dirname(__file__)
 urls = ["/", 'index',
         "/cates", 'cates',
         "/userinfo", 'userinfo',
-        "/about", 'about',
         "/send_warning/([^/]+)", 'send_warning',
-        "/login", 'login',
+        "/default", 'default',
         "/logout", 'logout',
+
+        "/qq_login", 'oauth.qqlogin.qqlogin',
+        "/qq_callback", 'oauth.qqlogin.qqcallback',
+        "/weibo_login", 'oauth.weibologin.weibologin',
+        "/weibo_callback", 'oauth.weibologin.weibocallback',
         ]
 
 app = web.application(urls, globals())
 wsgiapp = app.wsgifunc()
 
+web.config._db= db
 if web.config.get('_session') is None:
     store = web.session.DBStore(config.webpydb, 'sessions')
     session = web.session.Session(app, store)
@@ -27,20 +31,23 @@ if web.config.get('_session') is None:
 else:
     session = web.config._session
 
+curdir = os.path.dirname(__file__)
 render = web.template.render(os.path.join(curdir, 'templates/'), base='layout',
                              cache=False, globals={'session': session})
 
-
-def get_currend_user():
-    if not session.get('user_id'):
-        raise web.seeother('/login')
-    return web.storage(user_id=session.user_id)
-
+def login_required(func):
+    def Function(*args,**kargs):
+        if 'user' not in session:
+            web.seeother('/default',absolute=True)
+        else:
+            return func(*args,**kargs)
+    return Function
 
 class index(object):
+    @login_required
     def GET(self):
         web.header('Content-Type', 'text/html; charset=utf-8', unique=True)
-        user_id = get_currend_user().user_id
+        user_id = session.user.user_id
         cates = db.session.query(db.WarningCate).filter_by(user_id=user_id)
         warnings = db.session.query(db.Warning).filter_by(user_id=user_id)
         
@@ -94,13 +101,14 @@ class index(object):
 class cates(object):
     def _render(self):
         web.header('Content-Type', 'text/html; charset=utf-8', unique=True)
-        result = db.session.query(db.WarningCate).filter(db.WarningCate.user_id == get_currend_user().user_id)
+        result = db.session.query(db.WarningCate).filter(db.WarningCate.user_id == session.user.user_id)
         return render.cates(web.storage(cates=result))
 
+    @login_required
     def GET(self):
         data = web.input(action=None, cate_id=None)
         if data.action == 'del' and data.cate_id:
-            cate = db.session.query(db.WarningCate).filter_by(user_id=get_currend_user().user_id,
+            cate = db.session.query(db.WarningCate).filter_by(user_id=session.user.user_id,
                                                               cate_id=data.cate_id).first()
             if cate:
                 db.session.delete(cate)
@@ -109,27 +117,23 @@ class cates(object):
 
         return self._render()
 
+    @login_required
     def POST(self):
         data = web.input()
         if not data.cate:
             raise web.badrequest()
 
-        cate = db.WarningCate(get_currend_user().user_id, data.cate)
+        cate = db.WarningCate(session.user.user_id, data.cate)
         db.session.add(cate)
         db.session.commit()
         return self._render()
 
 
 class userinfo(object):
+    @login_required
     def GET(self):
         web.header('Content-Type', 'text/html; charset=utf-8', unique=True)
         return render.userinfo()
-
-
-class about(object):
-    def GET(self):
-        web.header('Content-Type', 'text/html; charset=utf-8', unique=True)
-        return render.about()
 
 
 class send_warning(object):
@@ -152,20 +156,16 @@ class send_warning(object):
         db.session.commit()
 
 
-class login(object):
+class default(object):
     def GET(self):
-        return render.login()
-
-    def POST(self):
-        data = web.input(user_id=None)
-        session.user_id = int(data.user_id)
-        return web.seeother('/')
-
+        web.header('Content-Type', 'text/html; charset=utf-8', unique=True)
+        return render.default()
 
 class logout(object):
+    @login_required
     def GET(self):
         session.kill()
-        return web.seeother('/login')
+        return web.seeother('/default')
 
         
 if __name__ == "__main__":

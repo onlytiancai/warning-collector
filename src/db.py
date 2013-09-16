@@ -7,7 +7,7 @@ from datetime import datetime
 
 import config
 
-engine = sqlalchemy.create_engine(config.dbconn, echo=True, connect_args={'charset': 'utf8'}, poolclass=NullPool)
+engine = sqlalchemy.create_engine(config.dbconn, echo=False, connect_args={'charset': 'utf8'}, poolclass=NullPool)
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
 
@@ -28,9 +28,13 @@ class User(Base):
 
     user_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     app_id = sqlalchemy.Column(sqlalchemy.String(128))
-    sina_user_id = sqlalchemy.Column(sqlalchemy.BigInteger)
+    oauth_user_id = sqlalchemy.Column(sqlalchemy.String(128), index=True)
     user_name = sqlalchemy.Column(sqlalchemy.String(128))
+    extend = sqlalchemy.Column(sqlalchemy.TEXT)
     created_on = sqlalchemy.Column(sqlalchemy.DateTime)
+
+    def __init__(self, oauth_user_id):
+        self.oauth_user_id = oauth_user_id
 
 class Warning(Base):
     __tablename__ = 'warnings'

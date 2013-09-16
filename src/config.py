@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import web
+import logging
+logging.basicConfig(level=logging.NOTSET)
 
 dbuser =  'root'
 dbpw = 'password'
