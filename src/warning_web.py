@@ -4,8 +4,10 @@ import os
 import datetime
 
 import config
+from db import loadsa, unloadsa, User, Warning, WarningCate
 import db
 
+web.config._db =db # 让oauth等模块使用model
 web.config.debug = True
 urls = ["/", 'index',
         "/cates", 'cates',
@@ -23,7 +25,11 @@ urls = ["/", 'index',
 app = web.application(urls, globals())
 wsgiapp = app.wsgifunc()
 
-web.config._db= db
+# 加载sqlalcheym的hook，用于在每个请求前建立dbsession, 请求结束后关闭session
+app.add_processor(web.loadhook(loadsa))
+app.add_processor(web.unloadhook(unloadsa))
+
+# 为了防止调试时因为auto reload而丢失session
 if web.config.get('_session') is None:
     store = web.session.DBStore(config.webpydb, 'sessions')
     session = web.session.Session(app, store)
@@ -48,8 +54,8 @@ class index(object):
     def GET(self):
         web.header('Content-Type', 'text/html; charset=utf-8', unique=True)
         user_id = session.user.user_id
-        cates = db.session.query(db.WarningCate).filter_by(user_id=user_id)
-        warnings = db.session.query(db.Warning).filter_by(user_id=user_id)
+        cates = web.ctx.db.query(WarningCate).filter_by(user_id=user_id)
+        warnings = web.ctx.db.query(Warning).filter_by(user_id=user_id)
         
         data = web.input(cate='all', host=None, appname=None, begin_time=None, end_time=None)
         if data.cate != 'all':
@@ -76,15 +82,14 @@ class index(object):
         if (end_time - begin_time).total_seconds() > 60 * 60 * 24 * 10:
             raise web.badrequest()
        
-        warnings = warnings.filter(db.Warning.created_on >= begin_time)
-        warnings = warnings.filter(db.Warning.created_on <= end_time)
+        warnings = warnings.filter(Warning.created_on >= begin_time)
+        warnings = warnings.filter(Warning.created_on <= end_time)
         
         last_week_begin = begin_time - datetime.timedelta(days=7)
         last_week_end = end_time - datetime.timedelta(days=7)
         next_week_begin = begin_time + datetime.timedelta(days=7)
         next_week_end = end_time + datetime.timedelta(days=7)
 
-        db.session.close()
         return render.index(web.storage(cates=cates,
                                         warnings=warnings,
                                         begin_time=begin_time.strftime('%Y-%m-%d'),
@@ -102,22 +107,19 @@ class index(object):
 class cates(object):
     def _render(self):
         web.header('Content-Type', 'text/html; charset=utf-8', unique=True)
-        result = db.session.query(db.WarningCate).filter(db.WarningCate.user_id == session.user.user_id)
-        db.session.close() 
+        result = web.ctx.db.query(WarningCate).filter(WarningCate.user_id == session.user.user_id)
         return render.cates(web.storage(cates=result))
 
     @login_required
     def GET(self):
         data = web.input(action=None, cate_id=None)
         if data.action == 'del' and data.cate_id:
-            cate = db.session.query(db.WarningCate).filter_by(user_id=session.user.user_id,
+            cate = web.ctx.db.query(WarningCate).filter_by(user_id=session.user.user_id,
                                                               cate_id=data.cate_id).first()
             if cate:
-                db.session.delete(cate)
-                db.session.commit()
+                web.ctx.db.delete(cate)
                 return web.found('/cates')
 
-        db.session.close()
         return self._render()
 
     @login_required
@@ -126,9 +128,8 @@ class cates(object):
         if not data.cate:
             raise web.badrequest()
 
-        cate = db.WarningCate(session.user.user_id, data.cate)
-        db.session.add(cate)
-        db.session.commit()
+        cate = WarningCate(session.user.user_id, data.cate)
+        web.ctx.db.add(cate)
         return self._render()
 
 
@@ -141,6 +142,8 @@ class userinfo(object):
 
 class send_warning(object):
     def POST(self, user_id):
+        if web.ctx.protocol != 'https':
+            raise web.badrequest()
         data = web.input(app_id=None, cate='Default', host="Default",
                          appname="Default", level="0", title=None, content=None)
 
@@ -149,14 +152,13 @@ class send_warning(object):
             raise web.badrequest()
 
         # user_id和app_id不匹配拒绝请求
-        user = db.session.query(db.User).filter_by(user_id=int(user_id), app_id=data.app_id).first()
+        user = web.ctx.db.query(User).filter_by(user_id=int(user_id), app_id=data.app_id).first()
         if not user:
             raise web.forbidden()
 
-        warning = db.Warning(user_id=int(user_id), title=data.title, content=data.content,
+        warning = Warning(user_id=int(user_id), title=data.title, content=data.content,
                              level=int(data.level), cate=data.cate, host=data.host, appname=data.appname)
-        db.session.add(warning)
-        db.session.commit()
+        web.ctx.db.add(warning)
 
 
 class default(object):

@@ -74,15 +74,14 @@ class qqcallback(object):
             nickname = self.get_nickname(access_token, openid)
 
             oauth_user_id = 'qq:' + openid
-            user = db.session.query(db.User).filter_by(oauth_user_id=oauth_user_id).first()
+            user = web.ctx.db.query(db.User).filter_by(oauth_user_id=oauth_user_id).first()
             if not user:
                 user = db.User(openid)
                 user.app_id = str(uuid.uuid1())
                 user.user_name = nickname
                 user.oauth_user_id = oauth_user_id
                 user.created_on = datetime.datetime.now()
-                db.session.add(user)
-                db.session.commit()
+                web.ctx.db.add(user)
 
             session.user = web.storage(app_id=user.app_id, user_id=user.user_id, user_name=user.user_name) 
             logging.info('qq logined:%s', session.user)

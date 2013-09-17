@@ -5,9 +5,13 @@ $var title: 首页
         <div class="well sidebar-nav">
             <ul class="nav">
                 <li>报警分类</li>
-                <li class="active"><a href="?cate=all">全部</a></li>
+                <li 
+                $if data.cate == 'all': class="active"
+                ><a href="?cate=all">全部</a></li>
                 $for cate in data.cates:
-                    <li><a href="?cate=$cate.cate">$cate.cate</a></li>
+                    <li
+                    $if cate.cate == data.cate: class="active"
+                    ><a href="?cate=$cate.cate" >$cate.cate</a></li>
             </ul>
         </div>
     </div>

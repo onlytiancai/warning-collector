@@ -52,3 +52,13 @@ warning_cates表
     1. cate默认为None
     1. begin_time默认为本周一
     1. end_time默认为今天
+
+
+SQLAlchemy error MySQL server has gone away
+http://stackoverflow.com/questions/16341911/sqlalchemy-error-mysql-server-has-gone-away
+Python SQLAlchemy - “MySQL server has gone away”
+http://stackoverflow.com/questions/18054224/python-sqlalchemy-mysql-server-has-gone-away
+SQLAlchemy proper session handling in multi-thread applications
+http://stackoverflow.com/questions/9619789/sqlalchemy-proper-session-handling-in-multi-thread-applications
+Web.py中Sqlalchemy scoped_session的使用
+http://blog.csdn.net/d_yang/article/details/2937214

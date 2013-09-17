@@ -1,14 +1,33 @@
 # -*- coding: utf-8 -*-
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 from datetime import datetime
+from sqlalchemy.exc import DisconnectionError
+import web
 
 import config
 
 engine = sqlalchemy.create_engine(config.dbconn, echo=False, connect_args={'charset': 'utf8'}, pool_recycle=5)
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
+
+# 防止mysql gone away，从池里取连接前先测试连接是否已断开。
+def checkout_listener(dbapi_con, con_record, con_proxy):
+    try:
+        try:
+            dbapi_con.ping(False)
+        except TypeError:
+            dbapi_con.ping()
+    except dbapi_con.OperationalError as exc:
+        if exc.args[0] in (2006, 2013, 2014, 2045, 2055):
+            raise DisconnectionError()
+        else:
+            raise
+
+
+sqlalchemy.event.listen(engine, 'checkout', checkout_listener)
+
 
 class WebSession(Base):
     __tablename__ = 'sessions'
@@ -35,6 +54,7 @@ class User(Base):
     def __init__(self, oauth_user_id):
         self.oauth_user_id = oauth_user_id
 
+
 class Warning(Base):
     __tablename__ = 'warnings'
     __table_args__ = {'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8'}
@@ -44,7 +64,7 @@ class Warning(Base):
     user_id = sqlalchemy.Column(sqlalchemy.Integer, index=True)
     cate = sqlalchemy.Column(sqlalchemy.String(32))
     host = sqlalchemy.Column(sqlalchemy.String(32))
-    appname= sqlalchemy.Column(sqlalchemy.String(32))
+    appname = sqlalchemy.Column(sqlalchemy.String(32))
     level = sqlalchemy.Column(sqlalchemy.SmallInteger)
     title = sqlalchemy.Column(sqlalchemy.String(256))
     content = sqlalchemy.Column(sqlalchemy.String(8000))
@@ -75,5 +95,15 @@ class WarningCate(Base):
         self.user_id = user_id
         self.cate = cate
 
-Base.metadata.create_all(engine) 
-session = Session()
+Base.metadata.create_all(engine)
+
+
+def loadsa():
+    session = scoped_session(sessionmaker(autoflush=True, bind=engine))
+    web.ctx.sadbsession = session
+    web.ctx.db = session()
+    
+
+def unloadsa():
+    web.ctx.db.close()
+    web.ctx.sadbsession.remove()
