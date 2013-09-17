@@ -84,6 +84,7 @@ class index(object):
         next_week_begin = begin_time + datetime.timedelta(days=7)
         next_week_end = end_time + datetime.timedelta(days=7)
 
+        db.session.close()
         return render.index(web.storage(cates=cates,
                                         warnings=warnings,
                                         begin_time=begin_time.strftime('%Y-%m-%d'),
@@ -102,6 +103,7 @@ class cates(object):
     def _render(self):
         web.header('Content-Type', 'text/html; charset=utf-8', unique=True)
         result = db.session.query(db.WarningCate).filter(db.WarningCate.user_id == session.user.user_id)
+        db.session.close() 
         return render.cates(web.storage(cates=result))
 
     @login_required
@@ -115,6 +117,7 @@ class cates(object):
                 db.session.commit()
                 return web.found('/cates')
 
+        db.session.close()
         return self._render()
 
     @login_required

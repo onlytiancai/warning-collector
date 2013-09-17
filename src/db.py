@@ -2,12 +2,11 @@
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import NullPool
 from datetime import datetime
 
 import config
 
-engine = sqlalchemy.create_engine(config.dbconn, echo=False, connect_args={'charset': 'utf8'}, poolclass=NullPool)
+engine = sqlalchemy.create_engine(config.dbconn, echo=False, connect_args={'charset': 'utf8'}, pool_recycle=5)
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
 
