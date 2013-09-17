@@ -13,9 +13,29 @@ $var title: 帮助信息
 
         <h2>报警API</h2>
         <p>请求地址：https://warnings.sinaapp.com/send_warning/{user_id}</p>
-<pre>curl https://warnings.sinaapp.com/send_warning/{user_id} -d "app_id={app_id}&title=磁盘空间不足&content=还剩300M"
+        <p>请求方式：POST</p>
+        <p>URL请求参数：</p>
+        <ul>
+            <li>user_id: 用户id，必选，数字类型，在用户信息里获取</li>
+        </ul>
+        <p>POST请求参数：</p>
+        <ul>
+            <li>app_id: 应用id，必选，在用户信息里获取</li>
+            <li>title: 报警标题，必选</li>
+            <li>content: 报警内容，必选，建议把报警时机器的CPU,内存，环境变量，程序最后日志等信息发上来，以便定位问题。</li>
+            <li>cate: 报警分类，可选，用于区分不同的报警类型，如主机性能，nginx报警，业务A</li>
+            <li>host: 报警所在主机，可选，如果你的机器多的话，该字段可以在报警列表里进行筛选</li>
+            <li>appname: 报警应用的名称，可选，如果你有好几个应用要发送报警的花，该字段可以在报警列表里进行筛选</li>
+            <li>level: 报警级别，可选，数字类型</li>
+        </ul>
+        <p>请求示例：</p>
+<pre>curl https://warnings.sinaapp.com/send_warning/1 -d "app_id=ab37e717-0053ace-5570ae87&title=磁盘空间不足&content=还剩300M"
 </pre>
-        <p></p>
+        <p>注意事项：</p>
+        <ol>
+            <li>为了防止报警信息被人拦截，api地址必须用https访问，否则返回bad request</li>
+            <li>请保护好app_id，不要泄漏，泄漏了可以在用户信息里更新</li>
+        </ol>
         <h2>项目地址</h2>
         <p><a href="https://github.com/onlytiancai/warning-collector" >Github code</a></p>
     </div>
