@@ -1,6 +1,9 @@
 $var title: 用户信息
 <h2>用户信息</h2>
 <p>用户昵称：蛙蛙王子</p>
-<p>user_id：<code>$session.user.user_id</code></p>
-<p>app_id：<code>$session.user.app_id</code></p>
-
+<form action="" method="post" accept-charset="utf-8">
+    <p>user_id：<code>$session.user.user_id</code></p>
+    <p>app_id：<code>$session.user.app_id</code></p>
+    <p><input type="submit" value="重置app_id"></p>
+    <p>提示:如果app_id不慎丢失，可以重置app_id，原有的app_id会失效。</p>
+</form>

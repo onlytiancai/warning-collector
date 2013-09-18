@@ -139,6 +139,15 @@ class userinfo(object):
         web.header('Content-Type', 'text/html; charset=utf-8', unique=True)
         return render.userinfo()
 
+    def POST(self):
+        import uuid
+        user = web.ctx.db.query(db.User).filter_by(user_id=session.user.user_id).first()
+        user.app_id = str(uuid.uuid1())
+        session.user.app_id = user.app_id
+        web.ctx.db.commit()
+        web.header('Content-Type', 'text/html; charset=utf-8', unique=True)
+        return render.userinfo()
+
 
 class send_warning(object):
     def POST(self, user_id):
