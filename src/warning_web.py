@@ -118,6 +118,7 @@ class cates(object):
                                                               cate_id=data.cate_id).first()
             if cate:
                 web.ctx.db.delete(cate)
+                web.ctx.commit()
                 return web.found('/cates')
 
         return self._render()
@@ -130,6 +131,7 @@ class cates(object):
 
         cate = WarningCate(session.user.user_id, data.cate)
         web.ctx.db.add(cate)
+        web.ctx.db.commit()
         return self._render()
 
 
@@ -168,6 +170,7 @@ class send_warning(object):
         warning = Warning(user_id=int(user_id), title=data.title, content=data.content,
                              level=int(data.level), cate=data.cate, host=data.host, appname=data.appname)
         web.ctx.db.add(warning)
+        web.ctx.db.commit()
 
 
 class default(object):

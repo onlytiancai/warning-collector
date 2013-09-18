@@ -82,6 +82,7 @@ class qqcallback(object):
                 user.oauth_user_id = oauth_user_id
                 user.created_on = datetime.datetime.now()
                 web.ctx.db.add(user)
+                web.ctx.db.commit()
 
             session.user = web.storage(app_id=user.app_id, user_id=user.user_id, user_name=user.user_name) 
             logging.info('qq logined:%s', session.user)
