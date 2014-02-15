@@ -20,6 +20,8 @@ urls = ["/", 'index',
         "/qq_callback", 'oauth.qqlogin.qqcallback',
         "/weibo_login", 'oauth.weibologin.weibologin',
         "/weibo_callback", 'oauth.weibologin.weibocallback',
+
+        "/yuezhangmen", "yuezhangmen.default",
         ]
 
 app = web.application(urls, globals())
