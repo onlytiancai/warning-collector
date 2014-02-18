@@ -95,6 +95,23 @@ class WarningCate(Base):
         self.user_id = user_id
         self.cate = cate
 
+
+class LianjianLog(Base):
+    __tablename__ = 'lianjian_log'
+    __table_args__ = {'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8'}
+    __mapper_args__ = {'always_refresh': True}
+
+    log_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    from_user = sqlalchemy.Column(sqlalchemy.String(64), index=True)
+    op = sqlalchemy.Column(sqlalchemy.SmallInteger)
+    total_hits = sqlalchemy.Column(sqlalchemy.Integer)
+    keep_hits = sqlalchemy.Column(sqlalchemy.Integer)
+    created_on = sqlalchemy.Column(sqlalchemy.DateTime)
+
+    def __init__(self, from_user):
+        self.from_user = from_user 
+
+
 Base.metadata.create_all(engine)
 
 

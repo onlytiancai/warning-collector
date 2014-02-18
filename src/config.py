@@ -7,10 +7,10 @@ dbuser =  'root'
 dbpw = 'password'
 dbhost = 'localhost'
 dbport = 3306
-dbname = 'warnings'
+dbname = 'app_warnings'
 
 try:
-    import sae.const
+    #import sae.const
     dbuser = sae.const.MYSQL_USER 
     dbpw = sae.const.MYSQL_PASS 
     dbhost = sae.const.MYSQL_HOST
