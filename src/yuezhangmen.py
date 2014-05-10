@@ -11,22 +11,22 @@ TOKEN = '855dde440a874ef798227147f6686f55'
 
 welcom_txt = u'''改变世界，从改变自己开始，从现在开始每天"练剑"吧，总共5招。
 
-(#1): 每天睡个好觉
-(#2): 每天保持好心情
-(#3): 每天学习半小时
-(#4): 每天运动半小时
-(#5): 每天陪陪家人
+(1): 每天睡个好觉
+(2): 每天保持好心情
+(3): 每天学习半小时
+(4): 每天运动半小时
+(5): 每天陪陪家人
 
-回复括号内的文字记录今日的练习成果。
+回复括号内的序号记录今日的练习成果。
 
-如果你感觉武功已经很高了，可以回复"##"来和别人比武。
+如果你感觉武功已经很高了，可以回复"#"来和别人比武。
 
 '''
 sleep_reply_txt = u'恭喜你，睡了个好觉，精力充沛才能做好事情。'
 happy_reply_txt = u'无论什么时候，都要保持好心情哦。'
 learning_reply_txt = u'恭喜你，今天完成了学习任务，离成功又近了一步。'
 sport_reply_txt = u'锻炼身体，保卫自己。锻炼肌肉，防止挨揍。yeah！'
-family_reply_txt = u'再忙也要抽空配配家人哦。'
+family_reply_txt = u'再忙也要抽空陪陪家人哦。'
 challenge_reply_txt = u'少侠，等你坚持练30天剑再来比武吧。'
 about_reply_txt = u''
 unknow_reply_txt = u''
@@ -54,6 +54,15 @@ def get_log(from_user, op):
     return web.ctx.db.query(LianjianLog).filter_by(from_user=from_user, op=op).first()
 
 
+def get_log_count(from_user):
+    a = web.ctx.db.query(LianjianLog).filter_by(from_user=from_user, op=1).count()
+    b = web.ctx.db.query(LianjianLog).filter_by(from_user=from_user, op=2).count()
+    c = web.ctx.db.query(LianjianLog).filter_by(from_user=from_user, op=3).count()
+    d = web.ctx.db.query(LianjianLog).filter_by(from_user=from_user, op=4).count()
+    e = web.ctx.db.query(LianjianLog).filter_by(from_user=from_user, op=5).count()
+    return max(a, b, c, d, e)
+
+
 def add_log(from_user, op):
     old_log = get_log(from_user, op)
     if not old_log:  # 全新记录
@@ -75,10 +84,12 @@ def add_log(from_user, op):
         elif diff <= timedelta(days=2):  # 48小时内连续增加
             old_log.total_hits += 1
             old_log.keep_hits += 1
+            old_log.created_on = datetime.now()
             logging.debug('add_log keep_hits += 1')
         else:
             old_log.total_hits += 1
             old_log.keep_hits = 1
+            old_log.created_on = datetime.now()
             logging.debug('add_log keep_hits = 1')
 
     web.ctx.db.commit()
@@ -126,42 +137,51 @@ def get_menu_text(key):
     return unknow_reply_txt
 
 
-def get_txtmsg_text(from_user, msg):
+def get_txtmsg_text(from_user, msg):  # NOQA
     '用户输入单获取回复'
     msg = msg.strip()
     result = welcom_txt
-    if msg == '#1':
+    if msg == '1':
         add_log(from_user, 1)
         log = get_log(from_user, 1)
         result = sleep_reply_txt
         result += u'\n该招式已经连续练习%s天，总计%s天。' % (log.keep_hits, log.total_hits)
     
-    if msg == '#2':
+    if msg == '2':
         add_log(from_user, 2)
         log = get_log(from_user, 2)
         result = happy_reply_txt
         result += u'\n该招式已经连续练习%s天，总计%s天。' % (log.keep_hits, log.total_hits)
 
-    if msg == '#3':
+    if msg == '3':
         add_log(from_user, 3)
         log = get_log(from_user, 3)
         result = learning_reply_txt
         result += u'\n该招式已经连续练习%s天，总计%s天。' % (log.keep_hits, log.total_hits)
  
-    if msg == '#4':
+    if msg == '4':
         add_log(from_user, 4)
         log = get_log(from_user, 4)
         result = sport_reply_txt
         result += u'\n该招式已经连续练习%s天，总计%s天。' % (log.keep_hits, log.total_hits)
  
-    if msg == '#5':
+    if msg == '5':
         add_log(from_user, 5)
         log = get_log(from_user, 5)
         result = family_reply_txt
         result += u'\n该招式已经连续练习%s天，总计%s天。' % (log.keep_hits, log.total_hits)
 
-    if msg == '##':
-        result = challenge_reply_txt
+    if msg == '#':
+        count = get_log_count(from_user)
+        if count < 30:
+            result = challenge_reply_txt
+        elif count < 60:
+            return u'''恭喜你，你总共练剑了%s天，获得了"江湖少侠"的称号。
+您的下一个目标是练剑60天，到时候会解锁新的称号，进击吧，少年。
+
+经过这么多天的练剑，相信你的生活发生了很大的改变，你可以请我喝一杯咖啡。
+https://tfsimg.alipay.com/images/mobilecodec/T1iPhdXithXXXXXXXX
+''' % count
 
     return result
 
